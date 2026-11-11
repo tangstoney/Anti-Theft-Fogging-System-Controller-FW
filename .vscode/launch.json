@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "RD91 M4 - J-Link SWD (download and debug)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+
+            // 使用本工程带调试符号的 ELF，F5 前先运行已有编译任务。
+            "executable": "${workspaceFolder}/build/rd91_controller.elf",
+            "preLaunchTask": "Build firmware",
+
+            "servertype": "jlink",
+            "serverpath": "C:/Program Files/SEGGER/JLink/JLinkGDBServerCL.exe",
+            "gdbPath": "${env:USERPROFILE}/.n32studio/Toolchain/gcc-arm-none-eabi/bin/arm-none-eabi-gdb.exe",
+
+            // 工程 tools/jlink/JLinkDevices.xml 中定义的 M4 设备别名。
+            "device": "RD91_N32WB436_M4",
+            "interface": "swd",
+            "serverArgs": [
+                "-JLinkDevicesXMLPath", "${workspaceFolder}/tools/jlink",
+                "-speed", "1000"
+            ],
+
+            // 下载并复位后，运行到 RT-Thread 调用的应用 main() 停住。
+            "runToEntryPoint": "main"
+        }
+    ]
+}

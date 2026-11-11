@@ -1,0 +1,6 @@
+build/
+logs/
+compile_commands.json
+*.code-workspace
+.claude/settings.local.json
+.vscode/launch.before-*.jsonc

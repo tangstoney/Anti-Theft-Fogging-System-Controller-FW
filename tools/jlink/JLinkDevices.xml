@@ -1,0 +1,8 @@
+<DataBase>
+  <!-- Vendor N32WB43x SDK selects N32L43X/N32L43x.FLM for M4.
+       Use actual N32WB436 32KiB RAM instead of generic 144KiB. Hardware unverified. -->
+  <Device>
+    <ChipInfo Vendor="Nationstech" Name="RD91_N32WB436_M4" Core="JLINK_CORE_CORTEX_M4" WorkRAMAddr="0x20000000" WorkRAMSize="0x00008000" />
+    <FlashBankInfo Name="Internal Flash" BaseAddr="0x08000000" MaxSize="0x00020000" Loader="N32L43x.FLM" LoaderType="FLASH_ALGO_TYPE_OPEN" AlwaysPresent="1" />
+  </Device>
+</DataBase>

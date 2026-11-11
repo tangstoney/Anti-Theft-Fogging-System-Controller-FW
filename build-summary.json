@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-11",
+  "role": "controller",
+  "scope": "P0 vendor RTT scaffold + QMI8A01z dual detection chains (vehicle motion / suspected shock)",
+  "compiler": "arm-none-eabi-gcc.exe (GNU Arm Embedded Toolchain 10.3-2021.10) 10.3.1 20210824 (release)",
+  "build_exit_code": 0,
+  "warnings": 0,
+  "flash_bytes": 31740,
+  "linker_ram_reserved_bytes": 14068,
+  "initial_sp": "0x20008000",
+  "reset_vector": "0x8006129",
+  "bss_end": "0x20002ef4",
+  "reset_calls_rtt_entry": true,
+  "rtt_symbols_linked": true,
+  "source_manifest_verified": true,
+  "hardware_verified": false,
+  "ble_implemented": false,
+  "product_business_implemented": false,
+  "artifacts": {
+    "elf": {
+      "path": "build\\rd91_controller.elf",
+      "bytes": 485780,
+      "sha256": "3bd6a2b36915bdae942abf31f167971d6e5bc62cf30ea261427dbafd840918ac"
+    },
+    "hex": {
+      "path": "build\\rd91_controller.hex",
+      "bytes": 89375,
+      "sha256": "60173d974ec406ef6fa393e80f6dcedd139d04d657e6b2a270657692068020a2"
+    },
+    "bin": {
+      "path": "build\\rd91_controller.bin",
+      "bytes": 31740,
+      "sha256": "63a8341d3182fc7e516a26b8ce1786d8db9a2cf9cdbb9f7dbbc26b95f1bdf786"
+    },
+    "map": {
+      "path": "build\\rd91_controller.map",
+      "bytes": 199730,
+      "sha256": "5cf15ef8b4a2bc5085271b06be3720883c1948d9e09d157ef245b5000dd7729a"
+    }
+  }
+}

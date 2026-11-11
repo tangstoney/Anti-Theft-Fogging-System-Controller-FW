@@ -1,0 +1,132 @@
+[
+  {
+    "id": "P1",
+    "path": "D:\\Tangshi\\Programs\\Hqvt\\rd91\\汽车防盗烟雾器产品需求文档.pdf",
+    "sha256": "bebfd3581ac0776df1c914fd12faf33a11f66e262dbc89b5bbb257f1d331e679"
+  },
+  {
+    "id": "P2",
+    "path": "D:\\Tangshi\\Programs\\Hqvt\\rd91\\汽车烟雾防盗报警器PRD-2026.10.28内部.docx",
+    "sha256": "1ccbb68f7461a467151ef584bfb29ed7d430e0da3e1002591fe809c5406363d8"
+  },
+  {
+    "id": "H1",
+    "path": "D:\\Tangshi\\Programs\\Hqvt\\rd91\\框图\\汽车烟雾防盗报警器方案框图-20261106.pdf",
+    "sha256": "af145882ffc6f8c1b06a77ba87145d025f5ca2802a6dc7a00aacc917406ee25b"
+  },
+  {
+    "id": "S1",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\projects\\n32wb43x_EVAL\\examples\\BLE\\master\\src\\main.c",
+    "sha256": "e04c754cfd074d5249577653173947d60217274265cb060e1ce9af21d5ab5c00"
+  },
+  {
+    "id": "S2",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\projects\\n32wb43x_EVAL\\examples\\BLE\\slave\\src\\main.c",
+    "sha256": "e361d746b717037d39532e6686ec7dd1287c096f6fb3815a8c942577a77c8946"
+  },
+  {
+    "id": "S3",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\projects\\n32wb43x_EVAL\\examples\\BLE\\master\\inc\\app_uart.h",
+    "sha256": "915b235efcab7979c8e4a9029708e19bb860423c504ad766dc51e97f109355af"
+  },
+  {
+    "id": "S4",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\projects\\n32wb43x_EVAL\\examples\\BLE\\master\\inc\\app_log.h",
+    "sha256": "b1bdd5e808a884e6f8e1e850341065b334533373040d5f5b3721079d4af742cf"
+  },
+  {
+    "id": "S5",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\projects\\n32wb43x_EVAL\\examples\\BLE\\master\\src\\app_io.c",
+    "sha256": "7538b6f79a6d8e7a885d017a37402e9d3e81e3bf47523c7f634bc67fe04abc09"
+  },
+  {
+    "id": "S6",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\firmware\\CMSIS\\device\\n32wb43x_flash.ld",
+    "sha256": "d071f453c27eb7dd411c848bfd9759bfe163bc36242261ea315a65e8afe842db"
+  },
+  {
+    "id": "S7",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\firmware\\CMSIS\\device\\system_n32wb43x.c",
+    "sha256": "fa7b229fd6c8b8f41294cfd5312b232fd1322dd854999749ab6be8f96a38a86d"
+  },
+  {
+    "id": "A1",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\BLE_Key_Arm_Disarm\\资料\\CN_N32WB436_AT_Command_User_Guide_V1.0.pdf",
+    "sha256": "c104b263647bdfd5884cf16586e887541641a535d73ed51345a5a52086fcb722"
+  },
+  {
+    "id": "A2",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\BLE_Key_Arm_Disarm\\资料\\CN_N32WB436_BLE_Development_User_Guide_V1.0.pdf",
+    "sha256": "e6209ac6356e0c067b32212c459fd7e45e58f23261b2bfa1c413c4055331ad6f"
+  },
+  {
+    "id": "B1",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_references\\WB43x\\N32WB43X_STB_V1.0.pdf",
+    "sha256": "19a36f3c1eb683ddf5d49206c3de03d175c847fdf9a40c3b966d4e89d3e4851e"
+  },
+  {
+    "id": "L1",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\GPIO_Button_LED\\Makefile",
+    "sha256": "452f4352eba4c071e8dbb5fa7d43164ca68d9f6b7f636793d4fa277666728678"
+  },
+  {
+    "id": "L2",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\GPIO_Button_LED\\src\\board.c",
+    "sha256": "6f53b2a830b6ff11e841bc6cf92018d3d4fa356efc098e29b43e3fa5ad37ec69"
+  },
+  {
+    "id": "L3",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\GPIO_Button_LED\\src\\button.c",
+    "sha256": "a8e333c0937391a9a9621d9239b3026d258ced01b0f069cba80914df4e43c4b8"
+  },
+  {
+    "id": "L4",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\BLE_Key_Arm_Disarm\\建工程规范.md",
+    "sha256": "4af81645d0b783194686b80a47d8e63e9d13ae3d6e94904786fe6de3d04928df"
+  },
+  {
+    "id": "L5",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\08_IMU\\建工程规范.md",
+    "sha256": "e6a426880114112aeec06a15fa35c0e136904ef31a592e2e3a914ad61f24537d"
+  },
+  {
+    "id": "L6",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\09_Human_Radar\\建工程规范.md",
+    "sha256": "f04118f3afdf49772179226e9fdffa1bc5c18c4e893c90e000ec47e45fc11149"
+  },
+  {
+    "id": "RT1",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\middlewares\\rt-thread\\include\\rtdef.h",
+    "sha256": "b16823e8ed1f1b2f66aab1bcd90ab7395446d77d2f88f588e7fff36ac74c63d4"
+  },
+  {
+    "id": "RT2",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\middlewares\\rt-thread\\src\\components.c",
+    "sha256": "ef521b8b312f0b2cbf7739e56066441a1550c1c75f3637e8cbe933dc57955c3e"
+  },
+  {
+    "id": "RT3",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\projects\\n32wb43x_EVAL\\examples\\RT_Thread\\DeviceDrivers\\uart\\src\\drv_usart.c",
+    "sha256": "286b7506fd259c9e1c89ca9851d659a6c95079415e74d3b3d20ac3b3c99d16d8"
+  },
+  {
+    "id": "RT4",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\_sdk\\Nsingtech.N32WB43x_Library.2.2.0\\projects\\n32wb43x_EVAL\\examples\\RT_Thread\\RT_Thread10_UART_DEVICE_REGISTER\\GCC\\Makefile",
+    "sha256": "67f39be837320df4e1c5383e1816d266d8b74905fa4841fbc5acbf51235412e6"
+  },
+  {
+    "id": "RT5",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\UART-GCC\\Makefile",
+    "sha256": "38d53716e2f7aa61a2edaa3cab1778bb4c2ad2c2f55fd1054b0960f53865a453"
+  },
+  {
+    "id": "RT6",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\UART-GCC\\src\\board.c",
+    "sha256": "0d2d97f1546c1ec0d950001d5009754e49b52d78c192a8adcd9b5346d6d3f022"
+  },
+  {
+    "id": "RT7",
+    "path": "D:\\Tangshi\\Project\\N32Demo\\UART-GCC\\inc\\rtconfig.h",
+    "sha256": "4d39d80fc1c36868b30e83151ed3deb874f028121fe4361a7d50d434f437ea9f"
+  }
+]
