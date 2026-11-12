@@ -1,41 +1,43 @@
 {
-  "date": "2026-11-11",
+  "date": "2026-11-12",
   "role": "controller",
-  "scope": "P0 vendor RTT scaffold + QMI8A01z dual detection chains (vehicle motion / suspected shock)",
+  "scope": "P0 vendor RTT scaffold + QMI8A01z dual detection chains + local alarm output service (WT588F02 2-wire voice / active buzzer / red-blue lamp)",
   "compiler": "arm-none-eabi-gcc.exe (GNU Arm Embedded Toolchain 10.3-2021.10) 10.3.1 20210824 (release)",
   "build_exit_code": 0,
   "warnings": 0,
-  "flash_bytes": 31740,
-  "linker_ram_reserved_bytes": 14068,
+  "flash_bytes": 35544,
+  "linker_ram_reserved_bytes": 15320,
   "initial_sp": "0x20008000",
-  "reset_vector": "0x8006129",
-  "bss_end": "0x20002ef4",
+  "reset_vector": "0x8006cf9",
+  "bss_end": "0x200033d8",
   "reset_calls_rtt_entry": true,
   "rtt_symbols_linked": true,
   "source_manifest_verified": true,
   "hardware_verified": false,
   "ble_implemented": false,
   "product_business_implemented": false,
+  "local_alarm_output_implemented": true,
+  "local_alarm_hardware_verified": false,
   "artifacts": {
     "elf": {
       "path": "build\\rd91_controller.elf",
-      "bytes": 485780,
-      "sha256": "3bd6a2b36915bdae942abf31f167971d6e5bc62cf30ea261427dbafd840918ac"
+      "bytes": 506568,
+      "sha256": "8540db9228befb0fc0e943730a36d0017430b9a6a0eb5e405ea9db0ee5cdaf91"
     },
     "hex": {
       "path": "build\\rd91_controller.hex",
-      "bytes": 89375,
-      "sha256": "60173d974ec406ef6fa393e80f6dcedd139d04d657e6b2a270657692068020a2"
+      "bytes": 100077,
+      "sha256": "f90adba7bdb6bc95b3f3d9e07db7e6931ca6fdbe53f35356c23217f2a9638cc5"
     },
     "bin": {
       "path": "build\\rd91_controller.bin",
-      "bytes": 31740,
-      "sha256": "63a8341d3182fc7e516a26b8ce1786d8db9a2cf9cdbb9f7dbbc26b95f1bdf786"
+      "bytes": 35544,
+      "sha256": "b31d6942bc368490f56461aa304ac8f51dd76188ba7d64b0107b034992c6a3da"
     },
     "map": {
       "path": "build\\rd91_controller.map",
-      "bytes": 199730,
-      "sha256": "5cf15ef8b4a2bc5085271b06be3720883c1948d9e09d157ef245b5000dd7729a"
+      "bytes": 210878,
+      "sha256": "38c37fe00de7e83b8b4565ed7a2d6176919172848170b7d6a3e635ab753465dd"
     }
   }
 }

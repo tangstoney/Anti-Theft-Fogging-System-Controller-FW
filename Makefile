@@ -14,11 +14,13 @@ PROJECT_ROOT = $(SDK_ROOT)
 
 C_SOURCES =  \
 src/main.c \
+src/alarm_output.c \
 bsp/n32wb43x_it.c \
 bsp/rt_board.c \
 bsp/board.c \
 bsp/i2c1.c \
 drivers/imu_qmi8a01z.c \
+drivers/wt588f02.c \
 app/rd91_app.c \
 app/impact.c \
 app/button.c \

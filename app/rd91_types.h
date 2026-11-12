@@ -161,6 +161,35 @@ typedef enum
     RD91_OUT_COUNT
 } Rd91Output;
 
+/*
+ * 本机声光输出状态。区分“命令已发出”和“确认在播放”：
+ * 只有语音芯片 BUSY 反馈才能把 VOICE 置为 ON；GPIO 驱动的蜂鸣器/灯
+ * 只能证明 MCU 已输出电平，不能证明真实声压/亮度（声压与亮度需实测）。
+ */
+typedef enum
+{
+    RD91_AOUT_OFF = 0,
+    RD91_AOUT_CMD_SENT, /* 命令已完整发出，尚未得到播放确认 */
+    RD91_AOUT_ON,       /* 已确认正在播放/输出 */
+    RD91_AOUT_FAULT
+} Rd91AudioState;
+
+/*
+ * 报警输出快照。version 对应最近一次“期望状态”变化，供后续通信线程
+ * 等订阅者判断是否有新状态；每个订阅者应自己保存待发送记录，不能共用一份。
+ * requested 是期望输出位图，voice/buzzer/lamp 是本机实际已下发到的状态。
+ */
+typedef struct
+{
+    uint32_t version;
+    uint8_t requested; /* bit = Rd91Output */
+    uint8_t voice;     /* Rd91AudioState */
+    uint8_t buzzer;    /* 0/1：已驱动电平，不是声压确认 */
+    uint8_t lamp;      /* 0/1：正在交替闪烁 */
+    uint8_t fault;     /* 最近一次观测到的故障通道位图 */
+    uint8_t reserved[3];
+} Rd91AlarmSnapshot;
+
 typedef struct
 {
     uint8_t percent;        /* 0..100 */
@@ -314,7 +343,8 @@ typedef struct
 /*
  * 输出接口。任何函数都不允许把"调用成功"当成业务或物理成功：
  * - fog_send 返回 OK 仅表示传输层已接受该请求；
- * - alarm_output 只是驱动入口，真实执行待硬件接入；
+ * - alarm_output 只登记期望状态并唤醒声光线程，不等待、不返回执行结果，
+ *   真实发声/发光由声光线程完成，故障只通过日志和快照体现；
  * - link_action 在 P1 为桩，不做真实断连。
  */
 typedef struct

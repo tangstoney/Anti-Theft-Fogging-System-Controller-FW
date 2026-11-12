@@ -23,6 +23,7 @@
 #include "shock_detect.h"
 #include "rd91_math.h"
 #include "project_config.h"
+#include "alarm_output.h"
 
 #define EVENT_QUEUE_SLOTS 16U
 
@@ -135,17 +136,13 @@ static void keyfob_reply_sink(uint32_t request_id, uint32_t session,
 
 static void alarm_output_sink(uint8_t output, uint8_t on)
 {
-    static const char *const names[] = { "VOICE", "BUZZER", "LAMP" };
-
-    if (output < (uint8_t)RD91_OUT_COUNT)
-    {
-        rt_kprintf("[%s] ALARM_OUT_STUB %s on=%u\n", RD91_ROLE, names[output],
-                   (unsigned int)on);
-    }
-    if (output == (uint8_t)RD91_OUT_LAMP)
-    {
-        Bench_SetLed(on != 0U);
-    }
+    /*
+     * 业务层只登记“期望状态”，立即返回：真正的语音时序、蜂鸣器、灯
+     * 由声光线程按最新期望收敛。这里不点台架灯——报警灯与台架灯是两套
+     * 输出，避免两个线程驱动同一盏灯。
+     * 连续 START / 重复 STOP 由 AlarmOut_SetOutput 做幂等处理。
+     */
+    AlarmOut_SetOutput(output, on);
 }
 
 static void link_action_sink(uint8_t peer, uint8_t action, int32_t arg)
@@ -463,6 +460,35 @@ static void print_imu_shock(const Rd91Event *event)
                (unsigned int)event->u.shock.saturated);
 }
 
+/* ---------- 台架声光自检 ---------- */
+
+#if RD91_BENCH_ALARM_SELFTEST
+static uint8_t bench_alarm_on;
+
+/*
+ * 台架自检入口：走与业务报警完全相同的 sink，验证的是同一个声光服务。
+ * 只改声光服务的期望状态，不修改业务状态机（app->alarm 不变）。
+ * 按键路径在 main 线程调用；也可以从调试器直接调用 Bench_AlarmSelfTest(0/1)。
+ */
+void Bench_AlarmSelfTest(int on)
+{
+    uint8_t i;
+
+    bench_alarm_on = (on != 0) ? 1U : 0U;
+    for (i = 0U; i < (uint8_t)RD91_OUT_COUNT; i++)
+    {
+        alarm_output_sink(i, bench_alarm_on);
+    }
+    rt_kprintf("[%s] BENCH_ALARM_SELFTEST on=%u\n", RD91_ROLE,
+               (unsigned int)bench_alarm_on);
+}
+
+static void bench_alarm_toggle(void)
+{
+    Bench_AlarmSelfTest(bench_alarm_on == 0U);
+}
+#endif
+
 /* ---------- 按键线程 ---------- */
 
 static void input_entry(void *parameter)
@@ -502,7 +528,11 @@ int main(void)
 
     Bench_Init();
     rt_kprintf("BOOT role=%s os=RTT_3.1.4 mode=BENCH_STUB_IO ble=NOT_IMPLEMENTED "
-               "sensors=IMU_ANYMOTION sample=100Hz fogger=LOOPBACK_SIMULATED\n", RD91_ROLE);
+               "sensors=IMU_ANYMOTION sample=100Hz fogger=LOOPBACK_SIMULATED "
+               "alarm=LOCAL_VOICE_BUZZER_LAMP\n", RD91_ROLE);
+
+    /* 三路声光输出先关断，再启动声光线程；线程内部等待语音芯片上电初始化。 */
+    AlarmOut_Init();
 
     /* IMU 失败不阻止启动：先保证 console/按键/状态机可以单独验收。 */
     imu_ret = imu_bringup();
@@ -573,6 +603,9 @@ int main(void)
                 /* 台架按键只做自检，不代表任何产品动作。 */
                 rt_kprintf("[%s] BENCH_KEY\n", RD91_ROLE);
                 Bench_LedToggle();
+#if RD91_BENCH_ALARM_SELFTEST
+                bench_alarm_toggle();
+#endif
             }
             else if (event.type == (uint8_t)RD91_EV_IMU_STATS)
             {

@@ -13,7 +13,7 @@
 
 ## P2 传感器与业务
 
-IMU 两条检测链路已实现（代码完成，未上板验证）：100Hz 采样线程 + 运动状态（秒级振动 RMS 迟滞判断）+ 疑似冲击（逐样本 |a| 峰值聚合），见 app/motion_stats.c、app/shock_detect.c；参数与含义见 inc/project_config.h，验收步骤见 verification.md。下一项：上板按六步验收、记录阈值表现；再按厂家 OUT/UART 手册接人体雷达，随后接纯 C 业务。布防/车辆/报警/执行请求拆开建模。撤防、MOVING、UNKNOWN、授权、静停入侵、超时/断线/重复ACK分别验收。识别阈值标待标定，不自行定义产品指标。
+IMU 两条检测链路已实现（代码完成，未上板验证）：100Hz 采样线程 + 运动状态（秒级振动 RMS 迟滞判断）+ 疑似冲击（逐样本 |a| 峰值聚合），见 app/motion_stats.c、app/shock_detect.c；参数与含义见 inc/project_config.h，验收步骤见 verification.md。本机声光报警同样代码完成、未上板：WT588F02 两线发码 + F2 循环 + BUSY 确认、有源蜂鸣器、红蓝灯交替，由一个静态声光线程独占，台架入口 `Bench_AlarmSelfTest`。下一项：上板按 IMU 六步与声光九步验收、记录阈值与停止延迟；再按厂家 OUT/UART 手册接人体雷达，随后接纯 C 业务。布防/车辆/报警/执行请求拆开建模。撤防、MOVING、UNKNOWN、授权、静停入侵、超时/断线/重复ACK分别验收。识别阈值标待标定，不自行定义产品指标。
 
 ## P3 整机
 
