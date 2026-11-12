@@ -17,8 +17,11 @@
  * - 任何失败都要统一收尾：恢复 ACK、复位 NACK 位置、发 STOP、等总线空闲，
  *   否则下一次访问会一直卡在 BUSY。
  *
- * 只有 imu 采样线程调用本模块，不做并发保护。
+ * 并发：IMU 采样线程（优先级 8）与主线程（充电器轮询，优先级 10）共用
+ * 这条总线。每次事务用互斥锁串行化，避免两条事务在总线上交错；
+ * 单个事务 <1ms，等待时间有界。
  */
+#include <rtthread.h>
 #include "i2c1.h"
 #include "n32wb43x.h"
 #include "project_config.h"
@@ -26,6 +29,26 @@
 /* 单次等待的迭代上限。108MHz 下约合数百微秒到毫秒级，
  * 具体数值需上板确认；这里只保证“不会永远等下去”。 */
 #define I2C1_WAIT_LOOPS 100000U
+
+static struct rt_mutex i2c1_lock;
+static uint8_t i2c1_lock_ready;
+static uint8_t i2c1_ready;
+
+static void i2c1_bus_lock(void)
+{
+    if (i2c1_lock_ready != 0U)
+    {
+        (void)rt_mutex_take(&i2c1_lock, RT_WAITING_FOREVER);
+    }
+}
+
+static void i2c1_bus_unlock(void)
+{
+    if (i2c1_lock_ready != 0U)
+    {
+        (void)rt_mutex_release(&i2c1_lock);
+    }
+}
 
 /* 等某个事件位组合全部置位。内部会读 STS1+STS2，因此会清掉 ADDR。 */
 static int i2c1_wait_event(uint32_t event)
@@ -258,10 +281,26 @@ int I2c1_Init(void)
     I2C_Init(I2C1, &init);
     I2C_Enable(I2C1, ENABLE);
 
+    /* 互斥对象只建一次；重复初始化（例如以后加入第二个器件）时保留原锁。 */
+    if (i2c1_lock_ready == 0U)
+    {
+        if (rt_mutex_init(&i2c1_lock, "i2c1", RT_IPC_FLAG_PRIO) == RT_EOK)
+        {
+            i2c1_lock_ready = 1U;
+        }
+    }
+    i2c1_ready = 1U;
+
     return I2C1_OK;
 }
 
-int I2c1_Write(uint8_t addr7, const uint8_t *wr, uint32_t wr_len)
+int I2c1_IsReady(void)
+{
+    return (i2c1_ready != 0U) ? 1 : 0;
+}
+
+/* 以下两个 *_locked 版本要求调用者已持有总线锁，不要在别处直接调用。 */
+static int i2c1_write_locked(uint8_t addr7, const uint8_t *wr, uint32_t wr_len)
 {
     int ret;
 
@@ -292,9 +331,9 @@ int I2c1_Write(uint8_t addr7, const uint8_t *wr, uint32_t wr_len)
     return i2c1_wait_idle();
 }
 
-int I2c1_WriteRead(uint8_t addr7,
-                   const uint8_t *wr, uint32_t wr_len,
-                   uint8_t *rd, uint32_t rd_len)
+static int i2c1_writeread_locked(uint8_t addr7,
+                                 const uint8_t *wr, uint32_t wr_len,
+                                 uint8_t *rd, uint32_t rd_len)
 {
     int ret;
 
@@ -345,4 +384,27 @@ int I2c1_WriteRead(uint8_t addr7,
     }
 
     return i2c1_wait_idle();
+}
+
+/* 对外接口：加锁后执行一次完整事务，所有返回路径都会解锁。 */
+int I2c1_Write(uint8_t addr7, const uint8_t *wr, uint32_t wr_len)
+{
+    int ret;
+
+    i2c1_bus_lock();
+    ret = i2c1_write_locked(addr7, wr, wr_len);
+    i2c1_bus_unlock();
+    return ret;
+}
+
+int I2c1_WriteRead(uint8_t addr7,
+                   const uint8_t *wr, uint32_t wr_len,
+                   uint8_t *rd, uint32_t rd_len)
+{
+    int ret;
+
+    i2c1_bus_lock();
+    ret = i2c1_writeread_locked(addr7, wr, wr_len, rd, rd_len);
+    i2c1_bus_unlock();
+    return ret;
 }

@@ -13,7 +13,9 @@
 
 ## P2 传感器与业务
 
-IMU 两条检测链路已实现（代码完成，未上板验证）：100Hz 采样线程 + 运动状态（秒级振动 RMS 迟滞判断）+ 疑似冲击（逐样本 |a| 峰值聚合），见 app/motion_stats.c、app/shock_detect.c；参数与含义见 inc/project_config.h，验收步骤见 verification.md。本机声光报警同样代码完成、未上板：WT588F02 两线发码 + F2 循环 + BUSY 确认、有源蜂鸣器、红蓝灯交替，由一个静态声光线程独占，台架入口 `Bench_AlarmSelfTest`。下一项：上板按 IMU 六步与声光九步验收、记录阈值与停止延迟；再按厂家 OUT/UART 手册接人体雷达，随后接纯 C 业务。布防/车辆/报警/执行请求拆开建模。撤防、MOVING、UNKNOWN、授权、静停入侵、超时/断线/重复ACK分别验收。识别阈值标待标定，不自行定义产品指标。
+IMU 两条检测链路已实现（代码完成，未上板验证）：100Hz 采样线程 + 运动状态（秒级振动 RMS 迟滞判断）+ 疑似冲击（逐样本 |a| 峰值聚合），见 app/motion_stats.c、app/shock_detect.c；参数与含义见 inc/project_config.h，验收步骤见 verification.md。本机声光报警同样代码完成、未上板：WT588F02 单线串口发码（两线代码保留，`RD91_WT_WIRE_MODE` 切换）+ F2 循环 + BUSY 确认、有源蜂鸣器、红蓝灯交替，由一个静态声光线程独占，台架入口 `Bench_AlarmSelfTest`。充电/状态指示灯代码完成、未上板：SGM41513 经共享 I2C1 读取 REG08/REG09，main 线程去抖后驱动 PA5/PA6（充电中红、充满绿），台架入口 `Bench_ChargeSimSet`。电池电量代码完成、未上板：CW2217（I2C 0x64）初始化写 CONFIG 0x30/0x00 退出 shutdown，main 线程每 2s 读 SOC/VCELL/TEMP，经 app/battery_level.c 换算与过期判断后投递 `RD91_EV_BATTERY`，台架入口 `Bench_BatterySimSet`（`Bench_ChargeSimSet`/`Bench_BatterySimSet` 默认编译关闭，置对应宏重新编译才可用）；低电阈值/告警未做（Q11）。Flash 预算：产品限制镜像 ≤50KB，`-Os` 下当前 36096B，后续两个功能块需在此预算内，新增功能前先记录尺寸增量。
+
+下一项：上板按 IMU 六步、声光九步、充电指示灯十步与电量计十步验收、记录阈值与停止延迟；再按厂家 OUT/UART 手册接人体雷达，随后接纯 C 业务。布防/车辆/报警/执行请求拆开建模。撤防、MOVING、UNKNOWN、授权、静停入侵、超时/断线/重复ACK分别验收。识别阈值标待标定，不自行定义产品指标。
 
 ## P3 整机
 

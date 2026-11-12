@@ -128,5 +128,15 @@
     "id": "RT7",
     "path": "D:\\Tangshi\\Project\\N32Demo\\UART-GCC\\inc\\rtconfig.h",
     "sha256": "4d39d80fc1c36868b30e83151ed3deb874f028121fe4361a7d50d434f437ea9f"
+  },
+  {
+    "id": "C1",
+    "path": "D:\\Tangshi\\Programs\\Hqvt\\rd91\\外挂模块\\充电芯片SGM41513.pdf",
+    "sha256": "028c7438cc1f603d663860f702dc47a408b3ea934de60babde083c14fa80832a"
+  },
+  {
+    "id": "C2",
+    "path": "D:\\Tangshi\\Programs\\Hqvt\\rd91\\外挂模块\\CW2217EAAD-DS V1.0_EN锂电池电量计.pdf",
+    "sha256": "a0876821262a2dfcec9f977106c151df2c7633b2806b5cbe3cd23f9b533d141d"
   }
 ]

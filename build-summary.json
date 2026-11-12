@@ -1,15 +1,18 @@
 {
   "date": "2026-11-12",
   "role": "controller",
-  "scope": "P0 vendor RTT scaffold + QMI8A01z dual detection chains + local alarm output service (WT588F02 2-wire voice / active buzzer / red-blue lamp)",
+  "scope": "P0 vendor RTT scaffold + QMI8A01z dual detection chains + local alarm output service (WT588F02 one-wire voice / active buzzer / red-blue lamp) + charge/status LED (SGM41513 over I2C1) + battery gauge (CW2217 over I2C1)",
   "compiler": "arm-none-eabi-gcc.exe (GNU Arm Embedded Toolchain 10.3-2021.10) 10.3.1 20210824 (release)",
+  "optimization": "-Os (was -Og; -Og cost +4336 B flash with the same sources)",
+  "bench_sims_compiled_in": false,
+  "wt588f02_wire_mode": "one-wire (RD91_WT_WIRE_MODE=1; two-wire path retained)",
   "build_exit_code": 0,
   "warnings": 0,
-  "flash_bytes": 35544,
-  "linker_ram_reserved_bytes": 15320,
+  "flash_bytes": 36096,
+  "linker_ram_reserved_bytes": 15400,
   "initial_sp": "0x20008000",
-  "reset_vector": "0x8006cf9",
-  "bss_end": "0x200033d8",
+  "reset_vector": "0x8006cb9",
+  "bss_end": "0x20003428",
   "reset_calls_rtt_entry": true,
   "rtt_symbols_linked": true,
   "source_manifest_verified": true,
@@ -18,26 +21,30 @@
   "product_business_implemented": false,
   "local_alarm_output_implemented": true,
   "local_alarm_hardware_verified": false,
+  "charge_indicator_implemented": true,
+  "charge_indicator_hardware_verified": false,
+  "battery_gauge_implemented": true,
+  "battery_gauge_hardware_verified": false,
   "artifacts": {
     "elf": {
       "path": "build\\rd91_controller.elf",
-      "bytes": 506568,
-      "sha256": "8540db9228befb0fc0e943730a36d0017430b9a6a0eb5e405ea9db0ee5cdaf91"
+      "bytes": 522748,
+      "sha256": "b5e25b64b912855a3c5e286439c6d1df535059a0f0351b61ee5d2074ca02fa09"
     },
     "hex": {
       "path": "build\\rd91_controller.hex",
-      "bytes": 100077,
-      "sha256": "f90adba7bdb6bc95b3f3d9e07db7e6931ca6fdbe53f35356c23217f2a9638cc5"
+      "bytes": 101623,
+      "sha256": "bf28091fbedae85affd0fb33c72775d66b29e7d94b80280c94135300105ba418"
     },
     "bin": {
       "path": "build\\rd91_controller.bin",
-      "bytes": 35544,
-      "sha256": "b31d6942bc368490f56461aa304ac8f51dd76188ba7d64b0107b034992c6a3da"
+      "bytes": 36096,
+      "sha256": "d01c345ef1b6428a6e339e5a47ff775e3573074ffaed778fff3bcf711be0244f"
     },
     "map": {
       "path": "build\\rd91_controller.map",
-      "bytes": 210878,
-      "sha256": "38c37fe00de7e83b8b4565ed7a2d6176919172848170b7d6a3e635ab753465dd"
+      "bytes": 216151,
+      "sha256": "2ad6f01f761bba0b4172bb4a1de58658b3fc99fc71c549438f70756f02deb141"
     }
   }
 }

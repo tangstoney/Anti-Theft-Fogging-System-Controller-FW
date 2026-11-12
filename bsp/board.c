@@ -148,6 +148,17 @@ void Board_WtSetData(int high)
     else      { GPIO_ResetBits(ALARM_WT_DATA_PORT, ALARM_WT_DATA_PIN); }
 }
 
+/*
+ * 单线模式的数据线：WT588F02 的单线数据输入端是 IO2（pin2），
+ * 与两线模式的 CLK 是同一个脚，因此驱动 PB0。PB1（两线 DATA/IO3）
+ * 在单线模式下不连接也不使用，初始化后保持低电平。
+ */
+void Board_WtSetWire(int high)
+{
+    if (high) { GPIO_SetBits(ALARM_WT_CLK_PORT, ALARM_WT_CLK_PIN); }
+    else      { GPIO_ResetBits(ALARM_WT_CLK_PORT, ALARM_WT_CLK_PIN); }
+}
+
 int Board_WtBusyLevel(void)
 {
     return (GPIO_ReadInputDataBit(ALARM_WT_BUSY_PORT, ALARM_WT_BUSY_PIN) == Bit_SET) ? 1 : 0;
@@ -162,7 +173,9 @@ void Board_AlarmIoInit(void)
     /*
      * 先把输出寄存器预置成非活动电平，再切到输出模式：
      * 避免初始化瞬间蜂鸣器响一下、灯闪一下。
-     * WT 的 CLK/DATA 保持低：资料要求 IO2(CLK) 不得上拉，上电为高可能进入非工作模式。
+     * WT 的 PB0/PB1 保持低：单线模式下 PB0 是数据线（芯片 IO2），
+     * 资料要求 IO2 不得上拉，上电为高可能进入非工作模式；
+     * 两线模式下 PB0/PB1 分别是 CLK/DATA，空闲低同样安全。
      */
     GPIO_ResetBits(ALARM_WT_CLK_PORT, ALARM_WT_CLK_PIN);
     GPIO_ResetBits(ALARM_WT_DATA_PORT, ALARM_WT_DATA_PIN);
@@ -194,4 +207,60 @@ void Board_AlarmIoInit(void)
     gpio.GPIO_Mode = GPIO_Mode_Input;
     gpio.GPIO_Pull = GPIO_Pull_Up;
     GPIO_InitPeripheral(ALARM_WT_BUSY_PORT, &gpio);
+}
+
+/* ---------- 充电/状态指示灯 ---------- */
+
+/* 逻辑电平 -> 引脚电平。RD91_CHG_LED_WIRING 在 inc/project_config.h 集中配置。 */
+void Board_ChargeLedDrive(int red_on, int green_on)
+{
+#if RD91_CHG_LED_WIRING == 0
+    /* 3 脚共阴：高电平点亮。 */
+    if (red_on)   { GPIO_SetBits(CHARGE_LED_RED_PORT, CHARGE_LED_RED_PIN); }
+    else          { GPIO_ResetBits(CHARGE_LED_RED_PORT, CHARGE_LED_RED_PIN); }
+    if (green_on) { GPIO_SetBits(CHARGE_LED_GREEN_PORT, CHARGE_LED_GREEN_PIN); }
+    else          { GPIO_ResetBits(CHARGE_LED_GREEN_PORT, CHARGE_LED_GREEN_PIN); }
+#elif RD91_CHG_LED_WIRING == 1
+    /* 3 脚共阳：低电平点亮。 */
+    if (red_on)   { GPIO_ResetBits(CHARGE_LED_RED_PORT, CHARGE_LED_RED_PIN); }
+    else          { GPIO_SetBits(CHARGE_LED_RED_PORT, CHARGE_LED_RED_PIN); }
+    if (green_on) { GPIO_ResetBits(CHARGE_LED_GREEN_PORT, CHARGE_LED_GREEN_PIN); }
+    else          { GPIO_SetBits(CHARGE_LED_GREEN_PORT, CHARGE_LED_GREEN_PIN); }
+#elif RD91_CHG_LED_WIRING == 2
+    /* 2 脚反并联：两脚反相才能点亮一种颜色；同时请求按红色处理。 */
+    if (red_on && !green_on)
+    {
+        GPIO_SetBits(CHARGE_LED_RED_PORT, CHARGE_LED_RED_PIN);
+        GPIO_ResetBits(CHARGE_LED_GREEN_PORT, CHARGE_LED_GREEN_PIN);
+    }
+    else if (!red_on && green_on)
+    {
+        GPIO_ResetBits(CHARGE_LED_RED_PORT, CHARGE_LED_RED_PIN);
+        GPIO_SetBits(CHARGE_LED_GREEN_PORT, CHARGE_LED_GREEN_PIN);
+    }
+    else
+    {
+        GPIO_ResetBits(CHARGE_LED_RED_PORT, CHARGE_LED_RED_PIN);
+        GPIO_ResetBits(CHARGE_LED_GREEN_PORT, CHARGE_LED_GREEN_PIN);
+    }
+#else
+#error Unsupported RD91_CHG_LED_WIRING
+#endif
+}
+
+void Board_ChargeIoInit(void)
+{
+    GPIO_InitType gpio;
+
+    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
+
+    /* 先把输出寄存器预置成“全灭”，再切到输出模式，避免上电闪一下。 */
+    Board_ChargeLedDrive(0, 0);
+
+    GPIO_InitStruct(&gpio);
+    gpio.Pin = CHARGE_LED_RED_PIN | CHARGE_LED_GREEN_PIN;
+    gpio.GPIO_Mode = GPIO_Mode_Out_PP;
+    gpio.GPIO_Pull = GPIO_No_Pull;
+    gpio.GPIO_Current = GPIO_DC_4mA;
+    GPIO_InitPeripheral(CHARGE_LED_RED_PORT, &gpio);
 }

@@ -71,6 +71,18 @@ typedef enum
     RD91_CAUSE_REMOTE
 } Rd91AlarmCause;
 
+/* 充电器状态。由 SGM41513 的 I2C 状态寄存器（REG08）判定，
+ * 不是 CW2217 的电量/电流读数，也不能给出剩余电量。 */
+typedef enum
+{
+    RD91_CHG_UNKNOWN = 0,
+    RD91_CHG_NO_INPUT,  /* 没有可用的输入电源（PG_STAT=0） */
+    RD91_CHG_CHARGING,  /* 预充或快充（CHRG_STAT=01/10） */
+    RD91_CHG_FULL,      /* 充电完成（CHRG_STAT=11） */
+    RD91_CHG_DISABLED,  /* 有输入但充电被禁用（CHRG_STAT=00） */
+    RD91_CHG_FAULT      /* 充电故障或电池过压，充电被挂起 */
+} Rd91ChargeState;
+
 /* 报警清除原因。清声光不等于撤回已执行的喷烟（Q09）。 */
 typedef enum
 {

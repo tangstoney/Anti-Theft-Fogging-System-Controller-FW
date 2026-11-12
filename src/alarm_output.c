@@ -310,7 +310,12 @@ static void alarm_entry(void *parameter)
     }
     else
     {
-        rt_kprintf("[%s] WT_READY wire=2WIRE addr_mode=%s seg=%u busy=%u\n", RD91_ROLE,
+        rt_kprintf("[%s] WT_READY wire=%s addr_mode=%s seg=%u busy=%u\n", RD91_ROLE,
+#if RD91_WT_WIRE_MODE == 1
+                   "1WIRE",
+#else
+                   "2WIRE",
+#endif
                    (RD91_WT_TWO_BYTE_ADDR != 0U) ? "DOUBLE" : "SINGLE",
                    (unsigned int)RD91_WT_SEGMENT_ALARM,
                    (unsigned int)RD91_WT_BUSY_ENABLED);

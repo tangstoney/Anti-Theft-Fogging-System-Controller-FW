@@ -1,19 +1,22 @@
 /**
  * @file wt588f02.c
- * @brief WT588F02-8S-C 两线串口驱动：GPIO + DWT 微秒延时。
+ * @brief WT588F02-8S-C 语音驱动：单线/两线串口 + GPIO + DWT 微秒延时。
+ *
+ * 控制方式由烧录语音工程时固定，用 RD91_WT_WIRE_MODE 选择：
+ *   - 1 = 单线（当前交付）：只有 DATA 线，接芯片 IO2（PB0）。
+ *       每字节：DATA 先高 >=5ms（必须有拉高动作）→ 拉低 5ms 起始 →
+ *       8 bit，高电平在前、低电平在后；高:低 = 3:1 表示 1，
+ *       1:3 表示 0；低位先发（§6.2.1/§6.2.4）。
+ *   - 2 = 两线：CLK=IO2（PB0）、DATA=IO3（PB1），上升沿采样，低位先发
+ *       （§6.2.5/§6.2.8）。
+ * 两种方式的命令字相同（语音地址、F2、FE、E0..EF），命令间隔均 >=2ms。
  *
  * 为什么不用硬件定时器或 RTOS tick：
- *   - RTT tick 是 10ms，两线位周期是 700µs，tick 无法表达；
+ *   - RTT tick 是 10ms，单线位宽是 200~600µs，tick 无法表达；
  *   - 位时序由本线程用 DWT 周期计数器忙等产生，连续 8 位期间调用
  *     rt_enter_critical() 只锁调度器、不关中断：SysTick 和 UART 中断照常，
- *     线程切换被推迟的时间上限是一个字节的 8 位（约 5.6ms）；
- *   - 字节前 5ms 高、5ms 低的等待放在锁外，其他线程可以运行。
- *
- * 资料依据（WT588F02-8S-C V1.03 §6.2.8）：
- *   - 每个字节前 CLK 先高 >=5ms，再拉低 5ms 作为起始；
- *   - 时钟周期 200µs~3.2ms，推荐高低各 350µs；
- *   - 上升沿采样，低位先发，先发高字节再发低字节；
- *   - 两条命令间隔 >=2ms。
+ *     线程切换被推迟的时间上限是一个字节的 8 位（单线约 6.4ms）；
+ *   - 字节前的 5ms 高/5ms 低等待放在锁外，其他线程可以运行。
  */
 #include <rtthread.h>
 #include "n32wb43x.h"
@@ -21,8 +24,16 @@
 #include "project_config.h"
 #include "wt588f02.h"
 
-#if RD91_WT_WIRE_MODE != 2
-#error "本工程只实现 WT588F02 两线串口,芯片的音频用PC端烧录"
+#if (RD91_WT_WIRE_MODE != 1) && (RD91_WT_WIRE_MODE != 2)
+#error "RD91_WT_WIRE_MODE 只能是 1（单线）或 2（两线）"
+#endif
+
+#if (RD91_WT_WIRE_MODE == 1) &&                                                \
+    ((RD91_WT_BIT_ONE_HIGH_US < 300U) || (RD91_WT_BIT_ONE_HIGH_US > 1200U) || \
+     (RD91_WT_BIT_ONE_LOW_US < 100U) || (RD91_WT_BIT_ONE_LOW_US > 400U) ||    \
+     (RD91_WT_BIT_ZERO_HIGH_US < 100U) || (RD91_WT_BIT_ZERO_HIGH_US > 400U) || \
+     (RD91_WT_BIT_ZERO_LOW_US < 300U) || (RD91_WT_BIT_ZERO_LOW_US > 1200U))
+#error "单线位时序短电平 100~400µs，长电平 300~1200µs"
 #endif
 
 #if (1000 % RT_TICK_PER_SECOND) != 0
@@ -96,25 +107,64 @@ int Wt_BusyLevel(void)
 }
 
 /*
- * 发送一个字节（两线模式）。
+ * 发送一个字节。
  *
- * 引脚方向与电平：
+ * 单线（RD91_WT_WIRE_MODE=1，数据线 = 芯片 IO2 = PB0）：
+ *   DATA 高 >=5ms -> 低 5ms 起始 -> 逐位“高在前、低在后”：
+ *   1 = 高 600µs + 低 200µs，0 = 高 200µs + 低 600µs（资料推荐值）。
+ *   芯片内部 220K 下拉，空闲为低；发码前必须有拉高 5ms 的动作。
+ *
+ * 两线（=2，CLK=PB0、DATA=PB1）：
  *   CLK 高 -> 等待 -> CLK 低（字节起始）-> 逐位：DATA 建立 -> CLK 上升沿采样 -> CLK 低。
- * 数据在 CLK 低电平期间改变，在上升沿时已经稳定。
+ *   数据在 CLK 低电平期间改变，在上升沿时已经稳定。
  */
 static void wt_send_byte(uint8_t value)
 {
     uint8_t i;
 
-    /* 字节前：CLK 先保持高 >=5ms（资料要求“必须先拉高”），再拉低 5ms 作为起始。 */
-    Board_WtSetClk(1);
-    wt_delay_us(RD91_WT_CLK_PRE_HIGH_US);
-    Board_WtSetClk(0);
-    wt_delay_us(RD91_WT_CLK_START_LOW_US);
+#if RD91_WT_WIRE_MODE == 1
+    /* 字节前：数据线先保持高 >=5ms（资料要求“必须先拉高”），再拉低 5ms 作为起始。 */
+    Board_WtSetWire(1);
+    wt_delay_us(RD91_WT_PRE_HIGH_US);
+    Board_WtSetWire(0);
+    wt_delay_us(RD91_WT_START_LOW_US);
 
     /*
      * 连续 8 位期间锁调度：防止线程切换把某个位拉长到超出芯片容限。
      * rt_enter_critical() 只增加调度器锁计数，不关全局中断，SysTick/UART 照常响应。
+     * 8 位 x 800µs ≈ 6.4ms，是其他线程被推迟的上限。
+     */
+    rt_enter_critical();
+    for (i = 0U; i < 8U; i++)
+    {
+        if (((value >> i) & 1U) != 0U) /* 低位先发 */
+        {
+            Board_WtSetWire(1);
+            wt_delay_us(RD91_WT_BIT_ONE_HIGH_US);
+            Board_WtSetWire(0);
+            wt_delay_us(RD91_WT_BIT_ONE_LOW_US);
+        }
+        else
+        {
+            Board_WtSetWire(1);
+            wt_delay_us(RD91_WT_BIT_ZERO_HIGH_US);
+            Board_WtSetWire(0);
+            wt_delay_us(RD91_WT_BIT_ZERO_LOW_US);
+        }
+    }
+    rt_exit_critical();
+
+    /* 恢复空闲低电平（芯片 IO 内部默认下拉，低电平是安全空闲态）。 */
+    Board_WtSetWire(0);
+#else
+    /* 字节前：CLK 先保持高 >=5ms（资料要求“必须先拉高”），再拉低 5ms 作为起始。 */
+    Board_WtSetClk(1);
+    wt_delay_us(RD91_WT_PRE_HIGH_US);
+    Board_WtSetClk(0);
+    wt_delay_us(RD91_WT_START_LOW_US);
+
+    /*
+     * 连续 8 位期间锁调度：防止线程切换把某个位拉长到超出芯片容限。
      * 8 位 x 700µs ≈ 5.6ms，是其他线程被推迟的上限。
      */
     rt_enter_critical();
@@ -130,6 +180,7 @@ static void wt_send_byte(uint8_t value)
 
     /* 恢复 DATA 低电平（芯片 IO 内部默认下拉，低电平是安全空闲态）。 */
     Board_WtSetData(0);
+#endif
 }
 
 /* 单条命令字：单字节模式直接发；双字节模式先发 FF 再发命令（资料 §6.2.6）。 */

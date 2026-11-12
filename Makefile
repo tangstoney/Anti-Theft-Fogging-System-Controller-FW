@@ -2,7 +2,7 @@
 TARGET = rd91_controller
 
 DEBUG = 1
-OPT = -Og
+OPT = -Os
 
 BUILD_DIR = build
 
@@ -15,17 +15,23 @@ PROJECT_ROOT = $(SDK_ROOT)
 C_SOURCES =  \
 src/main.c \
 src/alarm_output.c \
+src/charge_led.c \
+src/battery_gauge.c \
 bsp/n32wb43x_it.c \
 bsp/rt_board.c \
 bsp/board.c \
 bsp/i2c1.c \
 drivers/imu_qmi8a01z.c \
 drivers/wt588f02.c \
+drivers/sgm41513.c \
+drivers/cw2217.c \
 app/rd91_app.c \
 app/impact.c \
 app/button.c \
 app/motion_stats.c \
 app/shock_detect.c \
+app/charge_indicator.c \
+app/battery_level.c \
 $(PROJECT_ROOT)/firmware/CMSIS/device/system_n32wb43x.c \
 $(PROJECT_ROOT)/firmware/n32wb43x_std_periph_driver/src/misc.c \
 $(PROJECT_ROOT)/firmware/n32wb43x_std_periph_driver/src/n32wb43x_gpio.c \

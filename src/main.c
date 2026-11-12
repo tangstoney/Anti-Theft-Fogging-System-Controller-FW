@@ -24,6 +24,8 @@
 #include "rd91_math.h"
 #include "project_config.h"
 #include "alarm_output.h"
+#include "charge_led.h"
+#include "battery_gauge.h"
 
 #define EVENT_QUEUE_SLOTS 16U
 
@@ -151,10 +153,30 @@ static void link_action_sink(uint8_t peer, uint8_t action, int32_t arg)
                RD91_ROLE, (unsigned int)peer, (unsigned int)action, (int)arg);
 }
 
+/*
+ * 电量事件里的“是否充电”来自充电器状态，而不是电量计：
+ * 充电中=1、已充满/无输入/充电禁用=0、状态未知或故障=0xFF（未知）。
+ * 不能用 0 冒充“未充电”——未被确认的事实不能当作有效数据。
+ */
+static uint8_t battery_charging_flag(void)
+{
+    switch (ChargeLed_GetState())
+    {
+        case (uint8_t)RD91_CHG_CHARGING:
+            return 1U;
+        case (uint8_t)RD91_CHG_FULL:
+        case (uint8_t)RD91_CHG_NO_INPUT:
+        case (uint8_t)RD91_CHG_DISABLED:
+            return 0U;
+        default:
+            return RD91_BATT_CHARGING_UNKNOWN;
+    }
+}
+
 static void display_sink(const Rd91Status *status)
 {
     rt_kprintf("[%s] STATUS arm=%u veh=%u alarm=%u fog=%u exec=%u "
-               "kf=%u fg=%u link=%u/%u/%u batt=%u/%u\n",
+               "kf=%u fg=%u link=%u/%u/%u batt_local=%u/%u batt=%u/%u\n",
                RD91_ROLE,
                (unsigned int)status->arm, (unsigned int)status->vehicle,
                (unsigned int)status->alarm, (unsigned int)status->fog,
@@ -163,6 +185,8 @@ static void display_sink(const Rd91Status *status)
                (unsigned int)status->link[RD91_PEER_KEYFOB],
                (unsigned int)status->link[RD91_PEER_FOGGER],
                (unsigned int)status->link[RD91_PEER_PHONE],
+               (unsigned int)status->battery[RD91_BATTERY_LOCAL].percent,
+               (unsigned int)status->battery[RD91_BATTERY_LOCAL].percent_valid,
                (unsigned int)status->battery[RD91_BATTERY_KEYFOB].percent,
                (unsigned int)status->battery[RD91_BATTERY_KEYFOB].percent_valid);
 }
@@ -529,13 +553,22 @@ int main(void)
     Bench_Init();
     rt_kprintf("BOOT role=%s os=RTT_3.1.4 mode=BENCH_STUB_IO ble=NOT_IMPLEMENTED "
                "sensors=IMU_ANYMOTION sample=100Hz fogger=LOOPBACK_SIMULATED "
-               "alarm=LOCAL_VOICE_BUZZER_LAMP\n", RD91_ROLE);
+               "alarm=LOCAL_VOICE_BUZZER_LAMP charge=LED_RG_I2C batt=CW2217_I2C\n", RD91_ROLE);
 
     /* 三路声光输出先关断，再启动声光线程；线程内部等待语音芯片上电初始化。 */
     AlarmOut_Init();
 
     /* IMU 失败不阻止启动：先保证 console/按键/状态机可以单独验收。 */
     imu_ret = imu_bringup();
+
+    /*
+     * 充电指示灯要在 imu_bringup() 之后：I2c1_Init() 在那里完成，
+     * 这里的 SGM41513 探测走同一条总线。探测失败只记故障，不影响启动。
+     */
+    ChargeLed_Init();
+
+    /* 电量计同样挂在 I2C1 上；初始化会确认 VERSION 并退出 shutdown 模式。 */
+    BatteryGauge_Init();
 
     sink.log = log_sink;
     sink.keyfob_reply = keyfob_reply_sink;
@@ -636,6 +669,22 @@ int main(void)
         tick.u.keyfob.reserved = 0U;
         tick.u.keyfob.session = 0U;
         Rd91App_HandleEvent(&app, &tick);
+
+        /* 充电指示灯：内部按 RD91_CHG_POLL_MS 限速，单次 I2C 事务 <1ms。 */
+        ChargeLed_Poll();
+
+        /*
+         * 电量计：内部按 RD91_BATT_POLL_MS 限速。需要上报时把事件投回队列，
+         * 由本线程下一轮作为 RD91_EV_BATTERY 处理，业务状态仍只在 RD91App 里改。
+         */
+        {
+            Rd91Event batt;
+
+            if (BatteryGauge_Poll(battery_charging_flag(), &batt) != 0U)
+            {
+                post_event(&batt);
+            }
+        }
 
         if ((uint32_t)(Bench_NowMs() - last_heartbeat_ms) >= 1000U)
         {
